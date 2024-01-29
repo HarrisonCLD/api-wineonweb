@@ -1,10 +1,10 @@
 export interface User {
-  id: any;
-  id_civilite: any;
-  nom: any;
-  prenom: any;
+  id?: any;
+  id_civilite?: any;
+  nom?: any;
+  prenom?: any;
   password?: any;
-  id_role: any;
+  id_role?: any;
   adresse?: any;
   region?: any;
   pays?: any;

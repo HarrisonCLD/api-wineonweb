@@ -7,7 +7,7 @@ import AuthValidator from "../validators/auth.validator";
 const auth = express.Router();
 
 // Groupe de route express :
-auth.post("/signup", AuthValidator.validate_auth_validator, AuthController.registration);
+auth.post("/signup", AuthController.registration);
 auth.get(
   "/user/profile",
   JWTCheckMiddleware.verify_token,

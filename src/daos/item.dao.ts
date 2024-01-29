@@ -80,7 +80,6 @@ export default class ItemDAO {
           }
         });
       });
-      console.log(itemData)
       return itemData;
     } catch (error) {
       console.error(error);
