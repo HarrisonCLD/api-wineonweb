@@ -4,11 +4,12 @@ import DataDAO from "../daos/data.dao";
 
 import fs from "fs";
 import path from "path";
+import { CustomRequest } from "../interfaces/request.interface";
 
 export default class DataController {
   constructor() {}
 
-  static async getAll(req: Request, res: Response, getDataFunction:any) {
+  static async getAll(req: Request, res: Response, getDataFunction: any) {
     try {
       const result = await getDataFunction();
       res.json(result);
@@ -17,7 +18,7 @@ export default class DataController {
     }
   }
 
-  static async get_allData(req: Request, res: Response) {
+  static async get_allData(req: CustomRequest, res: Response) {
     try {
       const pays = await DataDAO.get_allPays();
       const region = await DataDAO.get_allRegion();
@@ -25,8 +26,7 @@ export default class DataController {
       const categorie = await DataDAO.get_allCategorie();
       const attribut = await DataDAO.get_allAttribut();
       const attributCategorie = await DataDAO.get_allAttributCategorie();
-      const attributOptionAttribut =
-        await DataDAO.get_allAttributOptionAttribut();
+      const attributOptionAttribut = await DataDAO.get_allAttributOptionAttribut();
       res.json({
         pays,
         region,
@@ -72,19 +72,15 @@ export default class DataController {
   // }
 
   static async get_allForImages(req: Request, res: Response) {
-    const directoryPath = "./src/images";
-    fs.readdir(directoryPath, (err, files) => {
-      if (err) {
-        console.error("Erreur de lecture du répertoire : ", err);
-        return;
+    try {
+      const images = await DataDAO.get_allImages();
+      console.log(images);
+      if (images) {
+        res.json(images);
       }
-
-      const imageUrls = files
-        .filter((file) => file.endsWith(".jpg") || file.endsWith(".png"))
-        .map((file) => file);
-
-      res.json(imageUrls);
-    });
+    } catch (error) {
+      console.error(error);
+    }
   }
   static async set_oneCategorie(req: Request, res: Response) {
     try {
@@ -126,8 +122,7 @@ export default class DataController {
       const categorie = await DataDAO.get_allCategorie();
       const attributCategorie = await DataDAO.get_allAttributCategorie();
       const attribut = await DataDAO.get_allAttribut();
-      const attributOptionAttribut =
-        await DataDAO.get_allAttributOptionAttribut();
+      const attributOptionAttribut = await DataDAO.get_allAttributOptionAttribut();
       const optionAttribut = await DataDAO.get_allOptionAttribut();
       res.json({
         categorie,

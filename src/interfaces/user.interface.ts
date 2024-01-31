@@ -11,7 +11,7 @@ export interface User {
   ville?: any;
   code_postal?: any;
   email?: any;
-  date_de_naissance?: any; 
+  date_de_naissance?: any;
   telephone?: any;
   token?: any;
 }

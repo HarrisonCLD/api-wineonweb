@@ -18,18 +18,9 @@ export default class ItemDAO {
   static async get_oneItem(itemId: any) {
     const supabase = Supabase.get_instance();
     try {
-      const { data: itemData, error: itemsError } = await supabase
-        .from("produit")
-        .select(
-          "nom, description, image, id_region(nom), id_pays(nom), id_fournisseur(nom)"
-        )
-        .eq("id", itemId)
-        .single();
+      const { data: itemData, error: itemsError } = await supabase.from("produit").select("nom, description, image, id_region(nom), id_pays(nom), id_fournisseur(nom)").eq("id", itemId).single();
 
-      const { data: priceItems, error: priceError } = await supabase
-        .from("prix")
-        .select("prix, id_option_attribut(nom)")
-        .eq("id_produit", itemId);
+      const { data: priceItems, error: priceError } = await supabase.from("prix").select("prix, id_option_attribut(nom)").eq("id_produit", itemId);
 
       // const formattedPrices = priceItems.map((el) => ({
       //   // prix: el.prix,
@@ -54,57 +45,26 @@ export default class ItemDAO {
   static async get_allItems() {
     const supabase = Supabase.get_instance();
     try {
-      const { data: itemData, error: itemsError } = await supabase
-        .from("produit")
-        .select(
-          "id, nom, description, image, id_region(nom), id_pays(nom), id_fournisseur(nom)"
-        ).returns<Item[]>();
+      const { data: itemData, error: itemsError } = await supabase.from("produit").select("id, nom, description, image, id_region(nom), id_pays(nom), id_fournisseur(nom)").returns<Item[]>();
 
-      const { data: priceItems, error: priceError } = await supabase
-        .from("prix")
-        .select("prix, id_option_attribut(nom), id_produit").returns<Price[]>();
+      const { data: priceItems, error: priceError } = await supabase.from("prix").select("prix, id_option_attribut(nom), id_produit").returns<Price[]>();
 
-      priceItems && priceItems.forEach((price) => {
-        itemData && itemData.forEach((item) => {
-          if (price.id_produit === item.id) {
-            if (!item.prix) 
-              item.prix = [];
-            
-            if (!item.option_attribut)
-              item.option_attribut = [];
+      priceItems &&
+        priceItems.forEach((price) => {
+          itemData &&
+            itemData.forEach((item) => {
+              if (price.id_produit === item.id) {
+                if (!item.prix) item.prix = [];
 
-            item.prix.push(price.prix);
+                if (!item.option_attribut) item.option_attribut = [];
 
-            if (price.id_option_attribut && price.id_option_attribut.nom ) 
-              item.option_attribut.push(price.id_option_attribut.nom);
-          }
+                item.prix.push(price.prix);
+
+                if (price.id_option_attribut && price.id_option_attribut.nom) item.option_attribut.push(price.id_option_attribut.nom);
+              }
+            });
         });
-      });
       return itemData;
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  static async get_filterItems(fitler: any) {
-    const supabase = Supabase.get_instance();
-    try {
-      const { data, error } = await supabase.from("produit").select("*");
-      return data;
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  static async get_newsItems() {
-    const supabase = Supabase.get_instance();
-    try {
-      const { data, error } = await supabase
-        .from("produit")
-        .select("nom, image")
-        .order("created_at", { ascending: false })
-        .limit(5);
-      return data;
     } catch (error) {
       console.error(error);
     }
@@ -128,7 +88,6 @@ export default class ItemDAO {
           },
         ])
         .select();
-      console.log(addInProduit);
       const { data: addInPrix, error: ErrorInPrix } = await supabase
         .from("prix")
         .insert([
@@ -139,7 +98,6 @@ export default class ItemDAO {
           },
         ])
         .select();
-      console.log(addInPrix);
       const { data: addInStock, error: ErrorInStock } = await supabase
         .from("stock")
         .insert([
@@ -157,6 +115,34 @@ export default class ItemDAO {
       return true;
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  static async set_categorie(item: any): Promise<boolean> {
+    const supabase = Supabase.get_instance();
+    try {
+      const { data } = await supabase.from("categorie").insert([item]);
+      return true;
+    } catch (error: any) {
+      return false;
+    }
+  }
+  static async set_attribut(item: any): Promise<boolean> {
+    const supabase = Supabase.get_instance();
+    try {
+      const { data } = await supabase.from("attribut").insert([item]);
+      return true;
+    } catch (error: any) {
+      return false;
+    }
+  }
+  static async set_optionAttribut(item: any): Promise<boolean> {
+    const supabase = Supabase.get_instance();
+    try {
+      const { data } = await supabase.from("option_attribut").insert([item]);
+      return true;
+    } catch (error: any) {
+      return false;
     }
   }
 }

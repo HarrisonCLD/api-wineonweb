@@ -22,17 +22,16 @@ export default class ItemController {
     }
   }
 
-  static async get_filterItems(req: Request, res: Response) {
-    const filter = req.query.searchTerm;
+  static async get_allItemsStock(req: Request, res: Response): Promise<Response> {
     try {
-      const result = await ItemDAO.get_filterItems(filter);
-      res.json(result);
+      const result = await ItemDAO.get_allItems();
+      return res.json(result);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
 
-  static async set_oneItem(req: Request, res: Response){
+  static async set_oneItem(req: Request, res: Response) {
     const item = req.body;
     try {
       const result = await ItemDAO.set_item(item);
@@ -43,20 +42,43 @@ export default class ItemController {
       res.status(500).json({ error: error.message });
     }
   }
-  static async get_newsItems(req: Request, res: Response) {
+  static async set_categorie(req: Request, res: Response): Promise<Response> {
     try {
-      const result = await ItemDAO.get_newsItems();
-      res.json(result);
+      const item = req.body;
+      const result = await ItemDAO.set_categorie(item);
+      if (result) {
+        return res.status(200).json({ success: true });
+      } else {
+        return res.status(401).json({ error: "Non autorisé." });
+      }
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      return res.status(500).json({ error: error.message });
     }
   }
-  // static async get_dataformAddItem(req: Request, res: Response) {
-  //   try {
-  //     const result = await ItemDAO.get_dataformAddItem();
-  //     res.json(result);
-  //   } catch (error) {
-  //     res.status(500).json({ error: error.message });
-  //   }
-  // }
+  static async set_attribut(req: Request, res: Response): Promise<Response> {
+    try {
+      const item = req.body;
+      const result = await ItemDAO.set_categorie(item);
+      if (result) {
+        return res.status(200).json({ success: true });
+      } else {
+        return res.status(401).json({ error: "Non autorisé." });
+      }
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+  static async set_optionAttribut(req: Request, res: Response): Promise<Response> {
+    try {
+      const item = req.body;
+      const result = await ItemDAO.set_categorie(item);
+      if (result) {
+        return res.status(200).json({ success: true });
+      } else {
+        return res.status(401).json({ error: "Non autorisé." });
+      }
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
 }

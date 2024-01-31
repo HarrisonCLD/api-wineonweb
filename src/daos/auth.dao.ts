@@ -26,13 +26,14 @@ export default class AuthDAO {
       if (data) {
         const user: User[] = data;
         const jwt = new JWTConfig();
-        const token = jwt.get_token(user[0].id);
+        const token = jwt.get_token([{ id: user[0].id, role: user[0].id_role }]);
         return { token };
       }
     } catch (err) {
-     console.error(err)
+      console.error(err);
     }
   }
+
   static async profileUser(id: any) {
     const supabase = Supabase.get_instance();
     try {
@@ -41,10 +42,9 @@ export default class AuthDAO {
         .select("nom, prenom, adresse, ville, code_postal, id_civilite( id, nom), id_role( id, nom)")
         .eq("id", id)
         .returns<User[]>();
-      console.log(data)
       return data;
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
   }
 }
