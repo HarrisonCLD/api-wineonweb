@@ -2,7 +2,6 @@ import express from "express";
 
 import AuthController from "../controllers/auth.controller";
 import JWTCheckMiddleware from "../middlewares/jwtCheckToken";
-import AuthValidator from "../validators/auth.validator";
 
 const auth = express.Router();
 

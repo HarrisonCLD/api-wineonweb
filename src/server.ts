@@ -8,6 +8,7 @@ import helmet from "helmet";
 import Item from "./routes/item.route";
 import Auth from "./routes/auth.route";
 import Data from "./routes/data.route";
+import Paiement from "./routes/paiement.route";
 
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "./entities/database.entitie";
@@ -30,6 +31,7 @@ const supabase = createClient<Database>(process.env.API_URL as string, process.e
 app.use("/items", Item);
 app.use("/authentification", Auth);
 app.use("/dataform", Data);
+app.use("/paiement", Paiement);
 
 app.listen(PORT, () => {
   console.log(`Serveur Node.js démarré sur le port ${PORT}`);
