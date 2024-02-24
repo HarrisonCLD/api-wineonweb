@@ -9,7 +9,7 @@ export default class JWTConfig {
     this.secretkey = process.env.SECRET_KEY as string;
   }
 
-  public get_token(data: Array<any>): string | void{
+  public get_token(data: Array<any>): string | void {
     try {
       const headers = this.get_header();
       const payload = this.get_payload(data);

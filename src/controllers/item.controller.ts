@@ -1,84 +1,55 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
 
 import ItemDAO from "../daos/item.dao";
 
 export default class ItemController {
-  static async get_oneItem(req: Request, res: Response) {
+  private constructor() {}
+
+  // SCHEMA
+  static async get_simplyData(
+    method: () => Promise<any>,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const result = await method();
+      result ? res.json(result) : next(500);
+    } catch (error) {
+      console.error(error);
+      next(410);
+    }
+  }
+  static async set_simplyData(
+    method: () => Promise<any>,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const result = await method();
+      result ? res.status(200).json({ message: "Insertion réussie !" }) : next(500);
+    } catch (error) {
+      console.error(error);
+      next(410);
+    }
+  }
+
+  // GETTER
+  static async get_item(req: Request, res: Response, next: NextFunction) {
     const itemId = req.params.id;
-    try {
-      const result = await ItemDAO.get_oneItem(itemId);
-      res.json(result);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
+    ItemController.get_simplyData(() => ItemDAO.get_item(itemId), req, res, next);
+  }
+  static async get_items(req: Request, res: Response, next: NextFunction) {
+    ItemController.get_simplyData(ItemDAO.get_items, req, res, next);
+  }
+  static async get_itemsStock(req: Request, res: Response, next: NextFunction) {
+    ItemController.get_simplyData(ItemDAO.get_items, req, res, next);
   }
 
-  static async get_allItems(req: Request, res: Response): Promise<Response> {
-    try {
-      const result = await ItemDAO.get_allItems();
-      return res.json(result);
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message });
-    }
-  }
-
-  static async get_allItemsStock(req: Request, res: Response): Promise<Response> {
-    try {
-      const result = await ItemDAO.get_allItems();
-      return res.json(result);
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message });
-    }
-  }
-
-  static async set_oneItem(req: Request, res: Response) {
+  // SETTER
+  static async set_item(req: Request, res: Response, next: NextFunction) {
     const item = req.body;
-    try {
-      const result = await ItemDAO.set_item(item);
-      if (result) {
-        res.status(201).json();
-      }
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-  static async set_categorie(req: Request, res: Response): Promise<Response> {
-    try {
-      const item = req.body;
-      const result = await ItemDAO.set_categorie(item);
-      if (result) {
-        return res.status(200).json({ success: true });
-      } else {
-        return res.status(401).json({ error: "Non autorisé." });
-      }
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message });
-    }
-  }
-  static async set_attribut(req: Request, res: Response): Promise<Response> {
-    try {
-      const item = req.body;
-      const result = await ItemDAO.set_categorie(item);
-      if (result) {
-        return res.status(200).json({ success: true });
-      } else {
-        return res.status(401).json({ error: "Non autorisé." });
-      }
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message });
-    }
-  }
-  static async set_optionAttribut(req: Request, res: Response): Promise<Response> {
-    try {
-      const item = req.body;
-      const result = await ItemDAO.set_categorie(item);
-      if (result) {
-        return res.status(200).json({ success: true });
-      } else {
-        return res.status(401).json({ error: "Non autorisé." });
-      }
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message });
-    }
+    ItemController.set_simplyData(() => ItemDAO.set_item(item), req, res, next);
   }
 }

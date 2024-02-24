@@ -1,17 +1,19 @@
 export interface User {
-  id?: any;
-  id_civilite?: any;
-  nom?: any;
-  prenom?: any;
-  password?: any;
-  id_role?: any;
-  adresse?: any;
-  region?: any;
-  pays?: any;
-  ville?: any;
-  code_postal?: any;
-  email?: any;
+  id?: number;
+  id_civilite?: number;
+  civilite?: string;
+  nom?: string;
+  prenom?: string;
+  password?: string;
+  id_role?: number;
+  role?: string;
+  adresse?: string;
+  id_pays?: number;
+  pays?: string;
+  ville?: string;
+  code_postal?: string;
+  email?: string;
   date_de_naissance?: any;
-  telephone?: any;
+  telephone?: number;
   token?: any;
 }

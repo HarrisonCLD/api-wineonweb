@@ -9,13 +9,16 @@ export default class AuthDAO {
   static async registration(data: User): Promise<boolean> {
     const supabase = Supabase.get_instance();
     try {
-      await supabase.from("utilisateur").insert([data]);
-      return true;
+      const res = await supabase.from("utilisateur").insert([data]);
+      if (res.status === 201 && res.statusText === "Created") {
+        return true;
+      } else {
+        return false;
+      }
     } catch (err) {
       return false;
     }
   }
-
   static async authentification(email: string, password: string) {
     const supabase = Supabase.get_instance();
     try {
@@ -30,12 +33,30 @@ export default class AuthDAO {
       console.error(err);
     }
   }
-
   static async profileUser(id: any) {
     const supabase = Supabase.get_instance();
     try {
-      const { data } = await supabase.from("utilisateur").select("nom, prenom, adresse, ville, code_postal, id_civilite( id, nom), id_role( id, nom)").eq("id", id).returns<User[]>();
-      return data;
+      const { data } = await supabase
+        .from("utilisateur")
+        .select("nom, prenom, adresse, ville, id_pays(nom) code_postal, id_civilite( id, nom), id_role( id, nom), date_de_naissance, telephone")
+        .eq("id", id)
+        .returns<User[]>();
+      if (data) {
+        const user = {
+          civilite: data[0].civilite,
+          nom: data[0].nom,
+          prenom: data[0].prenom,
+          date_naissance: data[0].date_de_naissance,
+          adresse: data[0].adresse,
+          ville: data[0].ville,
+          pays: data[0].pays,
+          code_postal: data[0].code_postal,
+          telephone: data[0].telephone,
+          role: data[0].id_role,
+          status: data[0].role,
+        };
+        return user;
+      }
     } catch (err) {
       console.error(err);
     }

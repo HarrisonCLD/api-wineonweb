@@ -4,77 +4,96 @@ import { Item } from "../interfaces/item.interface";
 import { Price } from "../interfaces/price.interface";
 
 export default class ItemDAO {
-  static get_formatedDate() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
+  private constructor() {}
 
-    // Format AAAA-MM-JJ
-    const formattedDate = `${year}-${month}-${day}`;
-    return formattedDate;
-  }
-
-  static async get_oneItem(itemId: any) {
+  // GETTER
+  static async get_item(itemId: any) {
     const supabase = Supabase.get_instance();
     try {
-      const { data: itemData, error: itemsError } = await supabase.from("produit").select("nom, description, image, id_region(nom), id_pays(nom), id_fournisseur(nom)").eq("id", itemId).single();
+      const { data } = await supabase
+        .from("produit")
+        .select("id, nom, description, image, id_region(nom), id_pays(nom), id_fournisseur(nom)")
+        .eq("id", itemId)
+        .returns<Item[]>();
 
-      const { data: priceItems, error: priceError } = await supabase.from("prix").select("prix, id_option_attribut(nom)").eq("id_produit", itemId);
+      const { data: price } = await supabase.from("prix").select("prix, id_option_attribut(nom)").eq("id_produit", itemId).returns<Price[]>();
 
-      // const formattedPrices = priceItems.map((el) => ({
-      //   // prix: el.prix,
-      //   // contenance: el.id_option_attribut.nom,
-      // }));
-
-      const ItemView = {
-        // nom: itemData.nom,
-        // description: itemData.description,
-        // region: itemData.id_region.nom,
-        // pays: itemData.id_pays.nom,
-        // fournisseur: itemData.id_fournisseur.nom,
-        // image: itemData.image,
-        // options: formattedPrices,
-      };
-      return ItemView;
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  static async get_allItems() {
-    const supabase = Supabase.get_instance();
-    try {
-      const { data: itemData, error: itemsError } = await supabase.from("produit").select("id, nom, description, image, id_region(nom), id_pays(nom), id_fournisseur(nom)").returns<Item[]>();
-
-      const { data: priceItems, error: priceError } = await supabase.from("prix").select("prix, id_option_attribut(nom), id_produit").returns<Price[]>();
-
-      priceItems &&
-        priceItems.forEach((price) => {
-          itemData &&
-            itemData.forEach((item) => {
-              if (price.id_produit === item.id) {
-                if (!item.prix) item.prix = [];
-
-                if (!item.option_attribut) item.option_attribut = [];
-
-                item.prix.push(price.prix);
-
-                if (price.id_option_attribut && price.id_option_attribut.nom) item.option_attribut.push(price.id_option_attribut.nom);
-              }
-            });
+      if (data && price) {
+        data.map((row) => {
+          row.prix = [];
+          row.option_attribut = [];
         });
-      return itemData;
+        price.map((row) => {
+          data[0].prix?.push(row.prix);
+          data[0].option_attribut?.push(row.id_option_attribut.nom);
+        });
+        const item: Item = {
+          id: data[0].id,
+          nom: data[0].nom,
+          description: data[0].description,
+          region: data[0].id_region?.nom,
+          pays: data[0].id_pays?.nom,
+          fournisseur: data[0].id_fournisseur?.nom,
+          image: data[0].image,
+          prix: data[0].prix,
+          option_attribut: data[0].option_attribut,
+        };
+        return item;
+      }
     } catch (error) {
       console.error(error);
+      return error;
+    }
+  }
+  static async get_items() {
+    const supabase = Supabase.get_instance();
+    try {
+      const { data: produit } = await supabase
+        .from("produit")
+        .select("id, nom, description, image, id_region(nom), id_pays(nom), id_fournisseur(nom), forward")
+        .returns<Item[]>();
+      const { data: price } = await supabase.from("prix").select("prix, id_option_attribut(nom), id_produit").returns<Price[]>();
+      if (price && produit) {
+        produit.map((row) => {
+          row.prix = [];
+          row.option_attribut = [];
+        });
+        for (let i = 0; i < price.length; i++) {
+          produit.map((row) => {
+            if (price[i].id_produit === row.id) {
+              row.prix?.push(price[i].prix);
+              row.option_attribut?.push(price[i].id_option_attribut.nom);
+            }
+          });
+        }
+        const items: Item[] = [];
+        produit.map((row) => {
+          items.push({
+            id: row.id,
+            nom: row.nom,
+            description: row.description,
+            region: row.id_region.nom,
+            pays: row.id_pays.nom,
+            fournisseur: row.id_fournisseur.nom,
+            image: row.image,
+            prix: row.prix,
+            option_attribut: row.option_attribut,
+            forward: row.forward,
+          });
+        });
+        return items;
+      }
+    } catch (error) {
+      console.error(error);
+      return error;
     }
   }
 
+  // SETTER
   static async set_item(item: any) {
     const supabase = Supabase.get_instance();
     try {
-      const date = ItemDAO.get_formatedDate();
-      const { data: addInProduit, error: ErrorInProduit } = await supabase
+      const { data: product } = await supabase
         .from("produit")
         .insert([
           {
@@ -88,61 +107,43 @@ export default class ItemDAO {
           },
         ])
         .select();
-      const { data: addInPrix, error: ErrorInPrix } = await supabase
-        .from("prix")
-        .insert([
+      if (product) {
+        const { data: price } = await supabase
+          .from("prix")
+          .insert([
+            {
+              prix: parseInt(item.prix),
+              id_produit: product[0].id,
+              id_option_attribut: parseInt(item.optionAttribut),
+            },
+          ])
+          .select();
+        const { data: produitCategorie } = await supabase.from("produit_categorie").insert([
           {
-            // prix: parseInt(item.prix),
-            // id_produit: addInProduit[0].id,
-            // id_option_attribut: parseInt(item.optionAttribut),
+            id_produit: product[0].id,
+            id_categorie: parseInt(item.categorie),
           },
-        ])
-        .select();
-      const { data: addInStock, error: ErrorInStock } = await supabase
-        .from("stock")
-        .insert([
-          {
-            // id_produit: addInProduit[0].id,
-            // quantite_stock: parseInt(item.qte_stock),
-            // date_maj: date,
-            // seuil_notif: parseInt(item.seuil_notif),
-            // seuil_restock: parseInt(item.seuil_restock),
-            // restock_auto: item.restock_auto ? true : false,
-            // id_prix: addInPrix[0].id,
-          },
-        ])
-        .select();
+        ]);
+        if (price) {
+          const { data: stock } = await supabase.from("stock").insert([
+            {
+              id_produit: product[0].id,
+              quantite_stock: parseInt(item.qte_stock),
+              date_maj: new Date().toISOString().slice(0, 10),
+              seuil_notif: parseInt(item.seuil_notif),
+              seuil_restock: parseInt(item.seuil_restock),
+              restock_auto: item.restock_auto ? true : false,
+              id_prix: price[0].id,
+            },
+          ]);
+        }
+      } else {
+        throw new Error("Erreur dans l'insertion");
+      }
       return true;
     } catch (error) {
       console.error(error);
-    }
-  }
-
-  static async set_categorie(item: any): Promise<boolean> {
-    const supabase = Supabase.get_instance();
-    try {
-      const { data } = await supabase.from("categorie").insert([item]);
-      return true;
-    } catch (error: any) {
-      return false;
-    }
-  }
-  static async set_attribut(item: any): Promise<boolean> {
-    const supabase = Supabase.get_instance();
-    try {
-      const { data } = await supabase.from("attribut").insert([item]);
-      return true;
-    } catch (error: any) {
-      return false;
-    }
-  }
-  static async set_optionAttribut(item: any): Promise<boolean> {
-    const supabase = Supabase.get_instance();
-    try {
-      const { data } = await supabase.from("option_attribut").insert([item]);
-      return true;
-    } catch (error: any) {
-      return false;
+      return error;
     }
   }
 }

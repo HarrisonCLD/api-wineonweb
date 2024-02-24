@@ -1,138 +1,136 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
 import DataDAO from "../daos/data.dao";
-
-import fs from "fs";
-import path from "path";
 import { CustomRequest } from "../interfaces/request.interface";
 
 export default class DataController {
-  constructor() {}
+  private constructor() {}
 
-  static async getAll(req: Request, res: Response, getDataFunction: any) {
+  // SCHEMA
+  static async get_simplyData(method: () => Promise<any>, req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await getDataFunction();
-      res.json(result);
+      const result = await method();
+      result ? res.json(result) : next(500);
     } catch (error) {
-      res.status(500).json();
+      console.error(error);
+      next(410);
+    }
+  }
+  static async set_simplyData(method: () => Promise<any>, req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await method();
+      result ? res.status(200).json({ message: "Insertion réussie !" }) : next(500);
+    } catch (error) {
+      console.error(error);
+      next(410);
     }
   }
 
-  static async get_allData(req: CustomRequest, res: Response) {
+  // GETTER
+  static async get_data_signup(req: Request, res: Response, next: NextFunction) {
     try {
-      const pays = await DataDAO.get_allPays();
-      const region = await DataDAO.get_allRegion();
-      const fournisseur = await DataDAO.get_allFournisseur();
-      const categorie = await DataDAO.get_allCategorie();
-      const attribut = await DataDAO.get_allAttribut();
-      const attributCategorie = await DataDAO.get_allAttributCategorie();
-      const attributOptionAttribut = await DataDAO.get_allAttributOptionAttribut();
+      const civilite = await DataDAO.get_civilite();
+      const pays = await DataDAO.get_pays();
+      res.status(200).json({ civilite, pays });
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  }
+  static async get_data_item(req: Request, res: Response, next: NextFunction) {
+    try {
+      const category = await DataDAO.get_category();
+      const attributCategory = await DataDAO.get_attributCategory();
+      const attribut = await DataDAO.get_attribut();
+      const attributOptionAttribut = await DataDAO.get_attributOptionAttribut();
+      const optionAttribut = await DataDAO.get_optionAttribut();
+      res.status(200).json({
+        category,
+        attributCategory,
+        attribut,
+        attributOptionAttribut,
+        optionAttribut,
+      });
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  }
+  static async get_data_form(req: CustomRequest, res: Response, next: NextFunction) {
+    try {
+      const pays = await DataDAO.get_pays();
+      const region = await DataDAO.get_region();
+      const fournisseur = await DataDAO.get_fournisseur();
+      const categorie = await DataDAO.get_category();
+      const attributCategorie = await DataDAO.get_attributCategory();
+      const attribut = await DataDAO.get_attribut();
+      const attributOptionAttribut = await DataDAO.get_attributOptionAttribut();
+      const optionAttribut = await DataDAO.get_optionAttribut();
+      const images = await DataDAO.get_images();
       res.json({
         pays,
         region,
         fournisseur,
         categorie,
+        attributCategorie,
         attribut,
         attributOptionAttribut,
-        attributCategorie,
-      });
-    } catch (error) {
-      res.status(500).json();
-    }
-  }
-
-  static async get_allForFournisseur(req: Request, res: Response) {
-    try {
-      const region = await DataDAO.get_allRegion();
-      const pays = await DataDAO.get_allPays();
-      res.json({ region, pays });
-    } catch (error) {
-      res.status(500).json();
-    }
-  }
-
-  static async get_allPays(req: Request, res: Response) {
-    await this.getAll(req, res, DataDAO.get_allPays());
-  }
-
-  static async get_allRegion(req: Request, res: Response) {
-    await this.getAll(req, res, DataDAO.get_allRegion());
-  }
-
-  static async get_allFournisseur(req: Request, res: Response) {
-    await this.getAll(req, res, DataDAO.get_allFournisseur());
-  }
-
-  // static async get_allAttribut_optionAttribut(req: Request, res: Response) {
-  //   await this.getAll(req, res, DataDAO.get_allAttribut_optionAttribut());
-  // }
-
-  // static async get_allAttribut_categorie(req: Request, res: Response) {
-  //   await this.getAll(req, res, DataDAO.get_allAttribut_categorie());
-  // }
-
-  static async get_allForImages(req: Request, res: Response) {
-    try {
-      const images = await DataDAO.get_allImages();
-      console.log(images);
-      if (images) {
-        res.json(images);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  static async set_oneCategorie(req: Request, res: Response) {
-    try {
-      const item = req.body;
-      const categorie = await DataDAO.set_oneCategorie(item);
-      if (categorie) {
-        res.status(201).json();
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  static async set_someAttribut(req: Request, res: Response) {
-    try {
-      const item = req.body;
-      const categorie = await DataDAO.set_someAttribut(item);
-      if (categorie) {
-        res.status(201).json();
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  static async set_someOptionAttribut(req: Request, res: Response) {
-    try {
-      const item = req.body;
-      const categorie = await DataDAO.set_someOptionAttribut(item);
-      if (categorie) {
-        res.status(201).json();
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  static async get_dataOptionItem(req: Request, res: Response) {
-    try {
-      const categorie = await DataDAO.get_allCategorie();
-      const attributCategorie = await DataDAO.get_allAttributCategorie();
-      const attribut = await DataDAO.get_allAttribut();
-      const attributOptionAttribut = await DataDAO.get_allAttributOptionAttribut();
-      const optionAttribut = await DataDAO.get_allOptionAttribut();
-      res.json({
-        categorie,
-        attribut,
-        attributOptionAttribut,
-        attributCategorie,
         optionAttribut,
+        images,
       });
     } catch (error) {
-      res.status(500).json();
+      console.error(error);
+      next(error);
     }
+  }
+
+  static async get_images(req: Request, res: Response, next: NextFunction) {
+    DataController.get_simplyData(DataDAO.get_images, req, res, next);
+  }
+  static async get_pays(req: Request, res: Response, next: NextFunction) {
+    DataController.get_simplyData(DataDAO.get_pays, req, res, next);
+  }
+  static async get_region(req: Request, res: Response, next: NextFunction) {
+    DataController.get_simplyData(DataDAO.get_region, req, res, next);
+  }
+  static async get_fournisseur(req: Request, res: Response, next: NextFunction) {
+    DataController.get_simplyData(DataDAO.get_fournisseur, req, res, next);
+  }
+  static async get_category(req: Request, res: Response, next: NextFunction) {
+    DataController.get_simplyData(DataDAO.get_category, req, res, next);
+  }
+  static async get_attributCategory(req: Request, res: Response, next: NextFunction) {
+    DataController.get_simplyData(DataDAO.get_attributCategory, req, res, next);
+  }
+  static async get_attribut(req: Request, res: Response, next: NextFunction) {
+    DataController.get_simplyData(DataDAO.get_attribut, req, res, next);
+  }
+  static async get_attributOptionAttribut(req: Request, res: Response, next: NextFunction) {
+    DataController.get_simplyData(DataDAO.get_attributOptionAttribut, req, res, next);
+  }
+  static async get_optionAttribut(req: Request, res: Response, next: NextFunction) {
+    DataController.get_simplyData(DataDAO.get_optionAttribut, req, res, next);
+  }
+
+  // SETTER
+  static async set_fournisseur(req: Request, res: Response, next: NextFunction) {
+    const category = req.body;
+    DataController.set_simplyData(() => DataDAO.set_fournisseur(category), req, res, next);
+  }
+  static async set_category(req: Request, res: Response, next: NextFunction) {
+    const category = req.body;
+    DataController.set_simplyData(() => DataDAO.set_category(category), req, res, next);
+  }
+  static async set_attributCategory(req: Request, res: Response, next: NextFunction) {
+    const attributCategory = req.body;
+    DataController.set_simplyData(() => DataDAO.set_attributCategory(attributCategory), req, res, next);
+  }
+  static async set_attribut(req: Request, res: Response, next: NextFunction) {
+    const attribut = req.body;
+    DataController.set_simplyData(() => DataDAO.set_attribut(attribut), req, res, next);
+  }
+  static async set_optionAttribut(req: Request, res: Response, next: NextFunction) {
+    const optionAttribut = req.body;
+    DataController.set_simplyData(() => DataDAO.set_optionAttribut(optionAttribut), req, res, next);
   }
 }
