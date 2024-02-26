@@ -2,6 +2,7 @@ import Supabase from "../entities/supabase.entities";
 
 import JWTConfig from "../configs/jwt.config";
 import { User } from "../interfaces/user.interface";
+import { jsonToUser } from "../entities/transformers/user.transformer";
 
 export default class AuthDAO {
   private constructor() {}
@@ -19,18 +20,28 @@ export default class AuthDAO {
       return false;
     }
   }
-  static async authentification(email: string, password: string) {
+  static async authentification(email: string, pass: string) {
     const supabase = Supabase.get_instance();
     try {
-      const { data } = await supabase.from("utilisateur").select("id, nom, prenom, id_role").eq("password", password).returns<User[]>();
-      if (data) {
-        const user: User[] = data;
-        const jwt = new JWTConfig();
-        const token = jwt.get_token([{ id: user[0].id, role: user[0].id_role }]);
-        return { token };
+      const { data: username } = await supabase.from("utilisateur").select("id").eq("email", email).returns<User[]>();
+      if (username && username.length > 0) {
+        const { data: password } = await supabase
+          .from("utilisateur")
+          .select(" nom, prenom, id_role")
+          .eq("id", username[0].id)
+          .eq("password", pass)
+          .returns<User[]>();
+        if (password && password.length > 0) {
+          const jwt = new JWTConfig();
+          const token = jwt.get_token([{ id: username[0].id, role: username[0].id_role }]);
+          return { token };
+        }
+        return "Invalid";
+      } else {
+        return "Invalid";
       }
     } catch (err) {
-      console.error(err);
+      return false;
     }
   }
   static async profileUser(id: any) {
