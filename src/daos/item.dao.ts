@@ -2,6 +2,7 @@ import Supabase from "../entities/supabase.entities";
 
 import { Item } from "../interfaces/item.interface";
 import { Price } from "../interfaces/price.interface";
+import item from "../routes/item.route";
 
 export default class ItemDAO {
   private constructor() {}
@@ -18,7 +19,9 @@ export default class ItemDAO {
 
       const { data: price } = await supabase.from("prix").select("prix, id_option_attribut(nom)").eq("id_produit", itemId).returns<Price[]>();
 
-      if (data && price) {
+      const { data: stock } = await supabase.from("stock").select("quantite_stock").eq("id_produit", itemId).single();
+
+      if (data && price && stock) {
         data.map((row) => {
           row.prix = [];
           row.option_attribut = [];
@@ -37,6 +40,7 @@ export default class ItemDAO {
           image: data[0].image,
           prix: data[0].prix,
           option_attribut: data[0].option_attribut,
+          stock: stock.quantite_stock,
         };
         return item;
       }
@@ -53,7 +57,7 @@ export default class ItemDAO {
         .select("id, nom, description, image, id_region(nom), id_pays(nom), id_fournisseur(nom), forward")
         .returns<Item[]>();
       const { data: price } = await supabase.from("prix").select("prix, id_option_attribut(nom), id_produit").returns<Price[]>();
-      if (price && produit) {
+      if (produit && price) {
         produit.map((row) => {
           row.prix = [];
           row.option_attribut = [];
@@ -65,6 +69,16 @@ export default class ItemDAO {
               row.option_attribut?.push(price[i].id_option_attribut.nom);
             }
           });
+        }
+        const { data: stock } = await supabase.from("stock").select("id_produit, quantite_stock");
+        if (stock) {
+          for (let k = 0; k < stock.length; k++) {
+            produit.map((row) => {
+              if (stock[k].id_produit === row.id) {
+                row.stock = stock[k].quantite_stock;
+              }
+            });
+          }
         }
         const items: Item[] = [];
         produit.map((row) => {
@@ -79,6 +93,7 @@ export default class ItemDAO {
             prix: row.prix,
             option_attribut: row.option_attribut,
             forward: row.forward,
+            stock: row.stock,
           });
         });
         return items;
@@ -125,22 +140,26 @@ export default class ItemDAO {
           },
         ]);
         if (price) {
-          const { data: stock } = await supabase.from("stock").insert([
-            {
-              id_produit: product[0].id,
-              quantite_stock: parseInt(item.qte_stock),
-              date_maj: new Date().toISOString().slice(0, 10),
-              seuil_notif: parseInt(item.seuil_notif),
-              seuil_restock: parseInt(item.seuil_restock),
-              restock_auto: item.restock_auto ? true : false,
-              id_prix: price[0].id,
-            },
-          ]);
+          const { data: stock } = await supabase
+            .from("stock")
+            .insert([
+              {
+                id_produit: product[0].id,
+                quantite_stock: parseInt(item.qte_stock),
+                date_maj: new Date().toISOString().slice(0, 10),
+                seuil_notif: parseInt(item.seuil_notif),
+                seuil_restock: parseInt(item.seuil_restock),
+                restock_auto: item.restock_auto ? true : false,
+                id_prix: price[0].id,
+              },
+            ])
+            .select();
+          if (stock) {
+            return true;
+          }
         }
-      } else {
-        throw new Error("Erreur dans l'insertion");
       }
-      return true;
+      return false;
     } catch (error) {
       console.error(error);
       return error;

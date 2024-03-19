@@ -16,9 +16,29 @@ export default class AuthController {
       const data = req.body;
       const user = jsonToUser(req.body);
       user.id_role = 4;
-      AuthValidator.validate_auth_validator(user, req, next);
       const result = await AuthDAO.registration(user);
-      result ? res.status(201).json({ message: "Inscription réussie" }) : next(500);
+      switch (result.code) {
+        case 0:
+          next(500);
+          break;
+        case 1:
+          next(412);
+          break;
+        case 2:
+          next(500);
+          break;
+        case 3:
+          return result;
+          break;
+        default:
+          next(500);
+          break;
+      }
+      if (result) {
+        res.status(200).json({ code: 1, message: "Inscription réussie" });
+      } else {
+        next(500);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -44,7 +64,6 @@ export default class AuthController {
       const result = await AuthDAO.profileUser(id);
       result ? res.status(202).json(result) : next(500);
     } catch (error) {
-      console.error(error);
       next(410);
     }
   }

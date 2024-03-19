@@ -1,6 +1,6 @@
 export interface Item {
   forward?: any;
-  id: any;
+  id?: any;
   prix?: any;
   nom?: any;
   description?: any;
@@ -12,7 +12,7 @@ export interface Item {
   id_fournisseur?: any;
   reference?: any;
   image?: any;
-  quantite_stock?: any;
+  stock?: any;
   id_prix?: any;
   categorie?: any;
   attribut?: any;

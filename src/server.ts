@@ -8,6 +8,7 @@ import helmet from "helmet";
 import Item from "./routes/item.route";
 import Auth from "./routes/auth.route";
 import Data from "./routes/data.route";
+import Paiement from "./routes/paiement.route";
 
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "./entities/database.entitie";
@@ -25,15 +26,13 @@ app.use(cors());
 app.use(helmet());
 
 // Initialisation de Supabase :
-const supabase = createClient<Database>(
-  process.env.API_URL as string,
-  process.env.API_KEY as string
-);
+const supabase = createClient<Database>(process.env.API_URL as string, process.env.API_KEY as string);
 
 // Utilisation des routes
 app.use("/items", Item);
 app.use("/authentification", Auth);
 app.use("/data", Data);
+app.use("/paiement", Paiement);
 app.use(Errors);
 
 app.listen(PORT, () => {

@@ -7,23 +7,51 @@ import { jsonToUser } from "../entities/transformers/user.transformer";
 export default class AuthDAO {
   private constructor() {}
 
-  static async registration(data: User): Promise<boolean> {
+  static async registration(user: User) {
     const supabase = Supabase.get_instance();
     try {
-      const res = await supabase.from("utilisateur").insert([data]);
-      if (res.status === 201 && res.statusText === "Created") {
-        return true;
+      const { data: email } = await supabase
+        .from("utilisateur")
+        .select("email")
+        .eq("email", user.email)
+        .returns<User[]>();
+      if (email && email.length > 0) {
+        return {
+          code: 1,
+          status: "error",
+          message: "Un compte avec cette adresse e-mail existe déjà.",
+        };
+      }
+      const { data } = await supabase.from("utilisateur").insert([user]).select().returns<User[]>();
+      if (data && data[0].id) {
+        return {
+          code: 3,
+          status: "success",
+          message: "Inscription réussie.",
+        };
       } else {
-        return false;
+        return {
+          code: 0,
+          status: "error",
+          message: "Une erreur est survenue",
+        };
       }
     } catch (err) {
-      return false;
+      return {
+        code: 2,
+        status: "error",
+        message: "Une erreur est survenue",
+      };
     }
   }
   static async authentification(email: string, pass: string) {
     const supabase = Supabase.get_instance();
     try {
-      const { data: username } = await supabase.from("utilisateur").select("id").eq("email", email).returns<User[]>();
+      const { data: username } = await supabase
+        .from("utilisateur")
+        .select("id")
+        .eq("email", email)
+        .returns<User[]>();
       if (username && username.length > 0) {
         const { data: password } = await supabase
           .from("utilisateur")
@@ -49,22 +77,24 @@ export default class AuthDAO {
     try {
       const { data } = await supabase
         .from("utilisateur")
-        .select("nom, prenom, adresse, ville, id_pays(nom) code_postal, id_civilite( id, nom), id_role( id, nom), date_de_naissance, telephone")
+        .select(
+          "id_civilite( id, nom), nom, prenom, adresse, ville, id_pays(nom), code_postal, id_role( id, nom), date_de_naissance, telephone"
+        )
         .eq("id", id)
         .returns<User[]>();
       if (data) {
         const user = {
-          civilite: data[0].civilite,
+          civilite: data[0].id_civilite.nom,
           nom: data[0].nom,
           prenom: data[0].prenom,
           date_naissance: data[0].date_de_naissance,
           adresse: data[0].adresse,
           ville: data[0].ville,
-          pays: data[0].pays,
+          pays: data[0].id_pays.nom,
           code_postal: data[0].code_postal,
           telephone: data[0].telephone,
-          role: data[0].id_role,
-          status: data[0].role,
+          role: data[0].id_role.id,
+          status: data[0].id_role.nom,
         };
         return user;
       }

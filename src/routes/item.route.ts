@@ -7,6 +7,7 @@ import JWTCheckMiddleware from "../middlewares/jwtCheckToken";
 const item = express.Router();
 
 // Groupe de route express :
+
 item
   .route("/private/items")
   .get(JWTCheckMiddleware.verify_token, ItemController.get_itemsStock)

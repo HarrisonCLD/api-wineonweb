@@ -3,13 +3,14 @@ import { Request, Response, NextFunction } from "express";
 
 import AuthController from "../controllers/auth.controller";
 import JWTCheckMiddleware from "../middlewares/jwtCheckToken";
+import AuthValidator from "../entities/validators/auth.validator";
 
 const auth = express.Router();
 
 // Groupe de route express :
 auth
   .route("/signup")
-  .post(AuthController.registration)
+  .post(AuthValidator.validate_auth_validator, AuthController.registration)
   .all((req: Request, res: Response, next: NextFunction) => next(405));
 
 auth
