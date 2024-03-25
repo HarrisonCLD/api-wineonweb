@@ -10,7 +10,7 @@ export default class DataController {
   static async get_simplyData(method: () => Promise<any>, req: Request, res: Response, next: NextFunction) {
     try {
       const result = await method();
-      result ? res.json(result) : next(500);
+      result ? res.json({ code: 1, status: "success", message: result }) : next(500);
     } catch (error) {
       console.error(error);
       next(410);
@@ -19,7 +19,7 @@ export default class DataController {
   static async set_simplyData(method: () => Promise<any>, req: Request, res: Response, next: NextFunction) {
     try {
       const result = await method();
-      result ? res.status(200).json({ message: "Insertion réussie !" }) : next(500);
+      result ? res.status(200).json({ code: 1, status: "success", message: result }) : next(500);
     } catch (error) {
       console.error(error);
       next(410);
@@ -31,7 +31,7 @@ export default class DataController {
     try {
       const civilite = await DataDAO.get_civilite();
       const pays = await DataDAO.get_pays();
-      res.status(200).json({ civilite, pays });
+      res.status(200).json({ code: 1, status: "success", message: { civilite: civilite, pays: pays } });
     } catch (error) {
       console.error(error);
       next(error);
@@ -45,11 +45,15 @@ export default class DataController {
       const attributOptionAttribut = await DataDAO.get_attributOptionAttribut();
       const optionAttribut = await DataDAO.get_optionAttribut();
       res.status(200).json({
-        category,
-        attributCategory,
-        attribut,
-        attributOptionAttribut,
-        optionAttribut,
+        code: 1,
+        status: "success",
+        message: {
+          category: category,
+          attributCategory: attributCategory,
+          attribut: attribut,
+          attributOptionAttribut: attributOptionAttribut,
+          optionAttribut: optionAttribut,
+        },
       });
     } catch (error) {
       console.error(error);
@@ -61,22 +65,26 @@ export default class DataController {
       const pays = await DataDAO.get_pays();
       const region = await DataDAO.get_region();
       const fournisseur = await DataDAO.get_fournisseur();
-      const categorie = await DataDAO.get_category();
-      const attributCategorie = await DataDAO.get_attributCategory();
+      const category = await DataDAO.get_category();
+      const attributCategory = await DataDAO.get_attributCategory();
       const attribut = await DataDAO.get_attribut();
       const attributOptionAttribut = await DataDAO.get_attributOptionAttribut();
       const optionAttribut = await DataDAO.get_optionAttribut();
       const images = await DataDAO.get_images();
       res.json({
-        pays,
-        region,
-        fournisseur,
-        categorie,
-        attributCategorie,
-        attribut,
-        attributOptionAttribut,
-        optionAttribut,
-        images,
+        code: 1,
+        status: "success",
+        message: {
+          pays: pays,
+          region: region,
+          fournisseur: fournisseur,
+          images: images,
+          category: category,
+          attributCategory: attributCategory,
+          attribut: attribut,
+          attributOptionAttribut: attributOptionAttribut,
+          optionAttribut: optionAttribut,
+        },
       });
     } catch (error) {
       console.error(error);
@@ -114,8 +122,8 @@ export default class DataController {
 
   // SETTER
   static async set_fournisseur(req: Request, res: Response, next: NextFunction) {
-    const category = req.body;
-    DataController.set_simplyData(() => DataDAO.set_fournisseur(category), req, res, next);
+    const fournisseur = req.body;
+    DataController.set_simplyData(() => DataDAO.set_fournisseur(fournisseur), req, res, next);
   }
   static async set_category(req: Request, res: Response, next: NextFunction) {
     const category = req.body;

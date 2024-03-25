@@ -18,11 +18,15 @@ export default class DataDAO {
       return error;
     }
   }
-  static async set_data(tableName: string, insert: string) {
+  static async set_data(tableName: string, insert: object) {
     const supabase = Supabase.get_instance();
     try {
-      const { data } = await supabase.from(tableName).insert([insert]);
-      return true;
+      const { data } = await supabase.from(tableName).insert([insert]).select();
+      if (data) {
+        return true;
+      } else {
+        return null;
+      }
     } catch (error) {
       console.error(error);
       return error;
@@ -79,18 +83,18 @@ export default class DataDAO {
 
   // SETTER
   static async set_fournisseur(fournisseur: any) {
-    DataDAO.set_data("fournisseur", fournisseur);
+    return DataDAO.set_data("fournisseur", fournisseur);
   }
   static async set_category(category: any) {
-    DataDAO.set_data("categorie", category);
+    return DataDAO.set_data("categorie", category);
   }
   static async set_attributCategory(attributCategory: any) {
-    DataDAO.set_data("attribut_categorie", attributCategory);
+    return DataDAO.set_data("attribut_categorie", attributCategory);
   }
   static async set_attribut(attribut: any) {
-    DataDAO.set_data("attribut", attribut);
+    return DataDAO.set_data("attribut", attribut);
   }
   static async set_optionAttribut(optionAttribut: any) {
-    DataDAO.set_data("option_attribut", optionAttribut);
+    return DataDAO.set_data("option_attribut", optionAttribut);
   }
 }

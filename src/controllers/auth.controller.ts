@@ -35,7 +35,7 @@ export default class AuthController {
           break;
       }
       if (result) {
-        res.status(200).json({ code: 1, message: "Inscription réussie" });
+        res.status(200).json({ code: 1, status: "success", message: "Inscription réussie" });
       } else {
         next(500);
       }
@@ -51,7 +51,7 @@ export default class AuthController {
       if (result === "Invalid") {
         next(410);
       } else {
-        res.status(202).json(result);
+        res.status(202).json({ code: 1, status: "success", message: result });
       }
     } catch (error) {
       next(500);
@@ -62,7 +62,7 @@ export default class AuthController {
     try {
       const id = req.token.data[0].id;
       const result = await AuthDAO.profileUser(id);
-      result ? res.status(202).json(result) : next(500);
+      result ? res.status(202).json({ code: 1, status: "success", message: result }) : next(500);
     } catch (error) {
       next(410);
     }

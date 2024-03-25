@@ -10,11 +10,7 @@ export default class AuthDAO {
   static async registration(user: User) {
     const supabase = Supabase.get_instance();
     try {
-      const { data: email } = await supabase
-        .from("utilisateur")
-        .select("email")
-        .eq("email", user.email)
-        .returns<User[]>();
+      const { data: email } = await supabase.from("utilisateur").select("email").eq("email", user.email).returns<User[]>();
       if (email && email.length > 0) {
         return {
           code: 1,
@@ -47,11 +43,7 @@ export default class AuthDAO {
   static async authentification(email: string, pass: string) {
     const supabase = Supabase.get_instance();
     try {
-      const { data: username } = await supabase
-        .from("utilisateur")
-        .select("id")
-        .eq("email", email)
-        .returns<User[]>();
+      const { data: username } = await supabase.from("utilisateur").select("id").eq("email", email).returns<User[]>();
       if (username && username.length > 0) {
         const { data: password } = await supabase
           .from("utilisateur")
@@ -62,7 +54,8 @@ export default class AuthDAO {
         if (password && password.length > 0) {
           const jwt = new JWTConfig();
           const token = jwt.get_token([{ id: username[0].id, role: username[0].id_role }]);
-          return { token };
+
+          return token;
         }
         return "Invalid";
       } else {
@@ -77,9 +70,7 @@ export default class AuthDAO {
     try {
       const { data } = await supabase
         .from("utilisateur")
-        .select(
-          "id_civilite( id, nom), nom, prenom, adresse, ville, id_pays(nom), code_postal, id_role( id, nom), date_de_naissance, telephone"
-        )
+        .select("id_civilite( id, nom), nom, prenom, adresse, ville, id_pays(nom), code_postal, id_role( id, nom), date_de_naissance, telephone")
         .eq("id", id)
         .returns<User[]>();
       if (data) {

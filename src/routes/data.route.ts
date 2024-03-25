@@ -20,6 +20,14 @@ data
   .get(DataController.get_data_form)
   .all((req: Request, res: Response, next: NextFunction) => next(405));
 data
+  .route("/region")
+  .get(DataController.get_region)
+  .all((req: Request, res: Response, next: NextFunction) => next(405));
+data
+  .route("/pays")
+  .get(DataController.get_pays)
+  .all((req: Request, res: Response, next: NextFunction) => next(405));
+data
   .route("/optionattribut")
   .get(DataController.get_optionAttribut)
   .post(JWTCheckMiddleware.verify_token, DataController.set_optionAttribut)
