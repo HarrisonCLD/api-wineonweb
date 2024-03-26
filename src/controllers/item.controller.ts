@@ -9,7 +9,7 @@ export default class ItemController {
   static async get_simplyData(method: () => Promise<any>, req: Request, res: Response, next: NextFunction) {
     try {
       const result = await method();
-      result ? res.json(result) : next(500);
+      result ? res.json({code:1,status: "success", message:result}) : next(500);
     } catch (error) {
       console.error(error);
       next(410);
@@ -18,7 +18,7 @@ export default class ItemController {
   static async set_simplyData(method: () => Promise<any>, req: Request, res: Response, next: NextFunction) {
     try {
       const result = await method();
-      result ? res.status(200).json({ message: "Insertion réussie !" }) : next(500);
+      result ? res.status(200).json({code:1,status: "success", message: "Insertion réussie !" }) : next(500);
     } catch (error) {
       console.error(error);
       next(410);
